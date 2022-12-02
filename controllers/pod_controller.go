@@ -19,6 +19,8 @@ package controllers
 import (
 	"context"
 
+	"log"
+
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -51,7 +53,7 @@ const (
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.13.0/pkg/reconcile
 func (r *PodReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	log := r.Log.WithValues("pod", req.NamespacedName)
+	// log := r.Log.WithValues("pod", req.NamespacedName)
 
 	/*
 		Step 0: Fetch the Pod from the Kubernetes API.
@@ -63,7 +65,7 @@ func (r *PodReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 			// ignore not-found errors eg. for deleted pods
 			return ctrl.Result{}, nil
 		}
-		log.Error(err, "unable to fetch Pod")
+		log.Printf("%s: unable to fetch Pod: %s", req.NamespacedName, err)
 		return ctrl.Result{}, err
 	}
 
@@ -77,7 +79,7 @@ func (r *PodReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 	if labelShouldBePresent == labelIsPresent {
 		// The desired state and actual state of the Pod are the same.
 		// No further action is required by the operator at this moment.
-		log.Info("no update required")
+		log.Printf("%s: no update required", req.NamespacedName)
 		return ctrl.Result{}, nil
 	}
 
@@ -87,11 +89,11 @@ func (r *PodReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 			pod.Labels = make(map[string]string)
 		}
 		pod.Labels[podNameLabel] = pod.Name
-		log.Info("adding pod-name label")
+		log.Printf("%s: adding pod-name label", req.NamespacedName)
 	} else {
 		// Remove if label is present but should not be set.
 		delete(pod.Labels, podNameLabel)
-		log.Info("removing pod-name label")
+		log.Printf("%s: removing pod-name label", req.NamespacedName)
 	}
 
 	/*
@@ -109,7 +111,7 @@ func (r *PodReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 			// Requeue the Pod to try to reconciliate again.
 			return ctrl.Result{Requeue: true}, nil
 		}
-		log.Error(err, "unable to update Pod")
+		log.Printf("%s: unable to update Pod: %s", req.NamespacedName, err)
 		return ctrl.Result{}, err
 	}
 
