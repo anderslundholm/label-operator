@@ -72,9 +72,9 @@ func (r *PodReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 	*/
 
 	labelShouldBePresent := pod.Annotations[addPodNameLabelAnnotation] == "true"
-	labeIsPresent := pod.Labels[podNameLabel] == pod.Name
+	labelIsPresent := pod.Labels[podNameLabel] == pod.Name
 
-	if labelShouldBePresent == labeIsPresent {
+	if labelShouldBePresent == labelIsPresent {
 		// The desired state and actual state of the Pod are the same.
 		// No further action is required by the operator at this moment.
 		log.Info("no update required")
