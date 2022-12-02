@@ -1,4 +1,4 @@
-domain: king.com
+domain: anderslundholm.com
 layout:
 - go.kubebuilder.io/v3
 plugins:
