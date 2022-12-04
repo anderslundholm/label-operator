@@ -19,12 +19,11 @@ package controllers
 import (
 	"context"
 
-	"log"
-
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/klog/v2/klogr"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -53,7 +52,7 @@ const (
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.13.0/pkg/reconcile
 func (r *PodReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	// log := r.Log.WithValues("pod", req.NamespacedName)
+	log := klogr.New().WithValues("pod", req.NamespacedName)
 
 	/*
 		Step 0: Fetch the Pod from the Kubernetes API.
@@ -65,7 +64,7 @@ func (r *PodReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 			// ignore not-found errors eg. for deleted pods
 			return ctrl.Result{}, nil
 		}
-		log.Printf("%s: unable to fetch Pod: %s", req.NamespacedName, err)
+		log.Error(err, "unable to fetch Pod")
 		return ctrl.Result{}, err
 	}
 
@@ -79,7 +78,7 @@ func (r *PodReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 	if labelShouldBePresent == labelIsPresent {
 		// The desired state and actual state of the Pod are the same.
 		// No further action is required by the operator at this moment.
-		log.Printf("%s: no update required", req.NamespacedName)
+		log.Info("no update required")
 		return ctrl.Result{}, nil
 	}
 
@@ -89,11 +88,11 @@ func (r *PodReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 			pod.Labels = make(map[string]string)
 		}
 		pod.Labels[podNameLabel] = pod.Name
-		log.Printf("%s: adding pod-name label", req.NamespacedName)
+		log.Info("adding pod-name label")
 	} else {
 		// Remove if label is present but should not be set.
 		delete(pod.Labels, podNameLabel)
-		log.Printf("%s: removing pod-name label", req.NamespacedName)
+		log.Info("removing pod-name label")
 	}
 
 	/*
@@ -111,7 +110,7 @@ func (r *PodReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 			// Requeue the Pod to try to reconciliate again.
 			return ctrl.Result{Requeue: true}, nil
 		}
-		log.Printf("%s: unable to update Pod: %s", req.NamespacedName, err)
+		log.Error(err, "unable to update Pod")
 		return ctrl.Result{}, err
 	}
 
