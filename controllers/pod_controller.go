@@ -19,7 +19,6 @@ package controllers
 import (
 	"context"
 
-	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -31,7 +30,6 @@ import (
 // PodReconciler reconciles a Pod object
 type PodReconciler struct {
 	client.Client
-	Log    logr.Logger
 	Scheme *runtime.Scheme
 }
 
